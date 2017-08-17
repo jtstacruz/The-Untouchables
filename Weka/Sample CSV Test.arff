@@ -1,0 +1,14 @@
+@relation 'Sample CSV Test'
+
+@attribute ﻿Outlook {'sunny ',overcast,rainy,'rainy '}
+@attribute Temperature {hot,mild,cool}
+@attribute Humidity {high,hight,normal}
+@attribute Windy {FALSE,TRUE}
+@attribute Play {no,yes}
+
+@data
+'sunny ',hot,high,FALSE,no
+overcast,hot,hight,FALSE,yes
+'sunny ',mild,normal,FALSE,yes
+rainy,mild,high,TRUE,no
+'rainy ',cool,normal,TRUE,no
