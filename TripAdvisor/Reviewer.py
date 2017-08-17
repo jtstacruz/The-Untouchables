@@ -15,10 +15,10 @@ file.write(
 
 # List the first page of the reviews (ends with "#REVIEWS") - separate the websites with ,
 WebSites = [
-    "https://www.tripadvisor.com.ph/Hotel_Review-g317121-d320846-Reviews-or5-Taal_Vista_Hotel-Tagaytay_Cavite_Province_Calabarzon_Region_Luzon.html#REVIEWS"]
+    "https://www.tripadvisor.com.ph/Hotel_Review-g317121-d320846-Reviews-Taal_Vista_Hotel-Tagaytay_Cavite_Province_Calabarzon_Region_Luzon.html#REVIEWS"]
 Checker = "REVIEWS"
 # looping through each site until it hits a break
-num = 5
+num = 0
 for theurl in WebSites:
     thepage = urlopen(theurl)
     soup = BeautifulSoup(thepage, "html.parser")
@@ -79,29 +79,17 @@ for theurl in WebSites:
                     hotelarray.append("0")
 
                 # extract the rating count for each user review
-        altarray = ""   
-        for rating in soup.findAll(attrs={"class": "rating reviewItemInline"}):
-            #alt = rating.find('img', alt=True)['alt']
-            #if alt[-5:] == 'stars':
-            #    if len(altarray) == 0:
-            #        altarray = [alt]
-            #    else:
-            #        altarray.append(alt)
 
-            if rating.find(class_ = "ui_bubble_rating bubble_50"):     
-                print(50)
-            elif rating.find(class_ = "ui_bubble_rating bubble_40"):    
-                print(40)
-            
+
             #alt = rating.find('span', class_='ui_bubble_rating', alt=True)['alt']
             #if alt is not None:
-            #    if alt[-5:] == 'bubbles':
+            #    if alt[-7:] == 'bubbles':
             #        if len(altarray) == 0:
             #           altarray = [alt]
             #        else:
             #          altarray.append(alt)
             #elif alt is None:
-            #        print("No rating!")
+            #    print("No rating!")
 
 
         Organization = soup.find(attrs={"class": "heading_title"}).text.replace('"', ' ').replace('Review of',
@@ -121,7 +109,27 @@ for theurl in WebSites:
             ReviewTitle = soup.findAll(attrs={"class": "noQuotes"})[x].text.replace(',', ' ').replace('"', '').replace('"','').replace('"', '').replace('e', 'e').strip()
             Review = soup.findAll(attrs={"class": "partial_entry"})[x].text.replace(',', ' ').replace('\n', ' ').strip()
             RatingDate = soup.findAll(attrs={"class": "ratingDate relativeDate"})[x].text.replace('Reviewed', ' ').replace('NEW',' ').replace(',', ' ').strip()
-            Rating = str(50)
+
+            altarray = []
+            for rating in soup.findAll(attrs={"class": "rating reviewItemInline"}):
+
+                if rating.find(class_ = "ui_bubble_rating bubble_50"):
+                    Rating = str(50)
+                    altarray.append(Rating)
+                elif rating.find(class_ = "ui_bubble_rating bubble_40"):
+                    Rating = str(40)
+                    altarray.append(Rating)
+                elif rating.find(class_ = "ui_bubble_rating bubble_30"):
+                    Rating = str(30)
+                    altarray.append(Rating)
+                elif rating.find(class_ = "ui_bubble_rating bubble_20"):
+                    Rating = str(20)
+                    altarray.append(Rating)
+                elif rating.find(class_ = "ui_bubble_rating bubble_10"):
+                    Rating = str(10)
+                    altarray.append(Rating)
+
+            Rating = altarray[x]
 
             Record = Organization + "," + Address + "," + Reviewer + "," + ReviewTitle + "," + Review + "," + RatingDate + "," + Rating
             if Checker == "REVIEWS":
