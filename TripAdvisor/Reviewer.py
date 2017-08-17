@@ -80,18 +80,6 @@ for theurl in WebSites:
 
                 # extract the rating count for each user review
 
-
-            #alt = rating.find('span', class_='ui_bubble_rating', alt=True)['alt']
-            #if alt is not None:
-            #    if alt[-7:] == 'bubbles':
-            #        if len(altarray) == 0:
-            #           altarray = [alt]
-            #        else:
-            #          altarray.append(alt)
-            #elif alt is None:
-            #    print("No rating!")
-
-
         Organization = soup.find(attrs={"class": "heading_title"}).text.replace('"', ' ').replace('Review of',
                                                                                                  ' ').strip()
         Address = soup.findAll(attrs={"class": "locality"})[0].text.replace(',', '').replace('\n', '').strip()
