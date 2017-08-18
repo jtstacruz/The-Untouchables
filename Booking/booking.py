@@ -66,7 +66,7 @@ for theurl in WebSites:
             if Checker == "REVIEWS":
                 file.write(bytes(Record, encoding="ascii", errors='ignore')  + b"\n")
 
-        link = soup.find_all('p', attrs={"id": "review_next_page_link"})
+        link = soup.find_all(attrs={"id": "review_next_page_link"})
         print(Organization)
         if len(link) == 0:
             break
