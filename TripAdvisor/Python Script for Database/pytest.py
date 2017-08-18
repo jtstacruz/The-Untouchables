@@ -3,10 +3,11 @@ import MySQLdb
 
 # Open the workbook and define the worksheet
 book = xlrd.open_workbook("SAMPLE.xlsx")
-sheet = book.sheet_by_name("source")
+#sheet = book.sheet_by_name("source")
+sheet = book.sheet_by_index(0)
 
 # Establish a MySQL connection
-database = MySQLdb.connect (host="localhost", user = "root", passwd = "", db = "mysqlPython")
+database = MySQLdb.connect (host="localhost", user = "root", passwd = "", db = "Reviewer")
 
 # Get the cursor, which is used to traverse the database, line by line
 cursor = database.cursor()
