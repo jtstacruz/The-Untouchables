@@ -17,7 +17,8 @@ query = """INSERT INTO CUSTOMER (CSTMR_ID, REVIEWSITES_ID, CSTMR_REVIEWER, CSTMR
 
 # Create a For loop to iterate through each row in the CSV file, starting at row 2 to skip the headers
 for r in range(1, sheet.nrows):
-      CSTMR_ID            = sheet.cell(r,).value
+      #CSTMR_ID            = sheet.cell(r,).value
+      CSTMR_ID            = sheet.cell(r,0).value
       REVIEWSITES_ID      = sheet.cell(r,1).value
       CSTMR_REVIEWER      = sheet.cell(r,2).value
       CSTMR_REVIEWTITLE   = sheet.cell(r,3).value
