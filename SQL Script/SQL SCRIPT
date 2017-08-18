@@ -1,12 +1,9 @@
-PATH TO DATABASE USING COMMAND PROMPT
+#PATH TO DATABASE USING COMMAND PROMPT
+	cd c:\\xampp\mysql\\bin
+	mysql.exe -u root
 
-cd c:\\xampp\mysql\\bin
-mysql.exe -u root
-use reviewer
-select *from reviewsites;
-select *from customer;
-describe reviewsites;
-describe customer;
+#create database named "Reviewer" in XAMPP
+	use reviewer
 
 SQL SCRIPT
 
@@ -18,10 +15,16 @@ INSERT INTO REVIEWSITES VALUES(003, 'TripAdvisor');
 
 CREATE TABLE CUSTOMER (CSTMR_ID INTEGER NOT NULL PRIMARY KEY, REVIEWSITES_ID INTEGER NOT NULL, CSTMR_REVIEWER VARCHAR(25), CSTMR_REVIEWTITLE VARCHAR(100), CSTMR_REVIEW VARCHAR(5000), CSTMR_RATINGDATE VARCHAR(100), CSTMR_RATING VARCHAR(10), FOREIGN KEY(REVIEWSITES_ID) REFERENCES REVIEWSITES(REVIEWSITES_ID));
 
-
-
 select *from reviewsites;
 select *from customer;
 describe reviewsites;
 describe customer;
 
+
+#open cmd to import data from excel to database
+#to show the number of imported columns and rows to MySQL
+	cd desktop
+	python pytest.py
+
+#to show the list of imported data from excel into MySQL
+	select *from customers;
