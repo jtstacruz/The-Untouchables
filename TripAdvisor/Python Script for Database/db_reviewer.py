@@ -32,4 +32,25 @@ queryCreateCustomerTable = """CREATE TABLE CUSTOMER(
                             )""".format(CSTMR_ID, REVIEWSITES_ID, CSTMR_REVIEWER, CSTMR_REVIEWTITLE, CSTMR_REVIEW, CSTMR_RATINGDATE, CSTMR_RATING)
 cursor.execute(queryCreateCustomerTable)
 
+del fList[0]
+
+# generate multiple values from the list to be placed in a query
+rows = ''
+for i in range(len(fList) - 1):
+    rows += "('{}','{}','{}','{}','{}','{}','{}')".format(fList[i][0], fList[i][1], fList[i][2], fList[i][3], fList[i][4], fList[i][5], fList[i][6])
+    if i != len(fList) - 2:
+        rows += ','
+
+# print(rows) // used to make sure the last value is not a comma
+queryInsert = "INSERT INTO CUSTOMER VALUES" + rows
+
+try:
+    # execute the SQL command
+    cursor.execute(queryInsert)
+    # commit changes to the database
+    db.commit()
+except:
+    # rollback in case there are any error
+    db.rollback()
+
 db.close()
