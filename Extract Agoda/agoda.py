@@ -25,35 +25,21 @@ for theurl in WebSites:
     while True:
         # extract the help count, restaurant review count, attraction review count and hotel review count
         a = b = 0
-        helpcountarray = restaurantarray = attractionarray = hotelarray = ""
+        helpcountarray = ""
         WebSites1 = ""
 
         for profile in soup.findAll(attrs={"class": "member_info"}):
-            if image.find("restaurant") > 0:
-                counter = image.split("restaurant", 1)[0].split("|", 1)[1][-4:].replace("|", "").strip()
-                if len(restaurantarray) == 0:
-                    restaurantarray = [counter]
+            if span.find("Did you find this review helpful?") > 0:
+                counter = span.split("Did you find this review helpful?", 1)[0].split("|", 1)[1][-4:].replace("|", "").strip()
+                if len(helpcountarray) == 0:
+                    helpcountarray = [counter]
                 else:
-                    restaurantarray.append(counter)
-            elif image.find("restaurant") < 0:
-                if len(restaurantarray) == 0:
-                    restaurantarray = ["0"]
+                    helpcountarray.append(counter)
+            elif span.find("Did you find this review helpful?") < 0:
+                if len(helpcountarray) == 0:
+                    helpcountarray = ["0"]
                 else:
-                    restaurantarray.append("0")
-
-            if image.find("hotel") > 0:
-                counter = image.split("hotel", 1)[0].split("|", 1)[1][-4:].replace("|", "").strip()
-                if len(hotelarray) == 0:
-                    hotelarray = [counter]
-                else:
-                    hotelarray.append(counter)
-            elif image.find("hotel") < 0:
-                if len(hotelarray) == 0:
-                    hotelarray = ["0"]
-                else:
-                    hotelarray.append("0")
-
-                # extract the rating count for each user review
+                    helpcountarray.append("0")
 
         Organization = soup.find(attrs={"class": "heading_title"}).text.replace('"', ' ').replace('Review of',
                                                                                                  ' ').strip()
