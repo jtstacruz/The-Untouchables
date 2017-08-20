@@ -48,7 +48,7 @@ for theurl in WebSites:
                 # Loop through each review on the page
         for x in range(0, len(helpcountarray)):
             try:
-                User = soup.findAll(attrs={"class": "review_item_reviewer"})[x].text.split("|", 1)[1][-4:].replace("|", "").strip()
+                User = soup.findAll("h4")[x].text
                 Reviewer = User[0]
             except:
                 Reviewer = "N/A"
@@ -71,10 +71,10 @@ for theurl in WebSites:
             if Checker == "REVIEWS":
                 file.write(bytes(Record, encoding="ascii", errors='ignore')  + b"\n")
 
-        link = soup.find(attrs={"id": "page_link review_next_page"}).text
+        link = soup.find('p', attrs={"class": "page_link review_next_page"})
         print(Organization)
         print(link)
-        if link.find('href'):
+        if link.findAll('href'):
             soup = BeautifulSoup(urllib.request.urlopen("https://www.booking.com" + link[0].get('href')),"html.parser")
             print(link[0].get('href'))
             Checker = link[0].get('href')[-7:]
