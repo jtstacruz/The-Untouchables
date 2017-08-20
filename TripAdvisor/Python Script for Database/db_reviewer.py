@@ -15,10 +15,10 @@ db = pymysql.connect("localhost", "root", "", "reviewer")
 # prepare a cursor object using cursor() method
 cursor = db.cursor()
 
-csv_data = csv.reader(file('SAMPLE.csv'))
+csv_data = csv.reader(open('SAMPLE.csv'))
+
 # drop table if it already exists using execute() method
-#cursor.execute("create database IF NOT EXISTS REVIEWER")
-#cursor.execute("DROP TABLE IF EXISTS CUSTOMER")
+cursor.execute("DROP TABLE IF EXISTS CUSTOMER")
 
 # create column names from the first line in fList
 #CSTMR_ID = fList[0][0]; REVIEWSITES_ID = fList[0][1]; CSTMR_REVIEWER = fList[0][2]; CSTMR_REVIEWTITLE = fList[0][3]; CSTMR_REVIEW = fList[0][4]; CSTMR_RATINGDATE = fList[0][5]; CSTMR_RATING = fList[0][6]
@@ -36,7 +36,7 @@ csv_data = csv.reader(file('SAMPLE.csv'))
 cursor.execute("create table IF NOT EXISTS CUSTOMER (CSTMR_ID INT, REVIEWSITES_ID INT, CSTMR_REVIEWER varchar(25), CSTMR_REVIEWTITLE varchar(100), CSTMR_REVIEW varchar(5000), CSTMR_RATINGDATE varchar(100), CSTMR_RATING varchar(10))")
 for row in csv_data:
     cursor.execute('INSERT INTO CUSTOMER (CSTMR_ID, REVIEWSITES_ID, CSTMR_REVIEWER, CSTMR_REVIEWTITLE, CSTMR_REVIEW, CSTMR_RATINGDATE, CSTMR_RATING)' 'values(%s,%s,%s,%s,%s,%s,%s)', row)
-    print row
+    print(row)
 db.commit()
 cursor.close()
 
