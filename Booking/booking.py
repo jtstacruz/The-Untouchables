@@ -11,7 +11,7 @@ from urllib.request import urlopen
 
 file = open(os.path.expanduser(r"~/Desktop/Booking Reviews.csv"), "wb")
 file.write(
-    b"Organization,Reviewer,Address,Review Title,ReviewNeg,ReviewPos,Rating Date,Rating" + b"\n")
+    b"Organization,Reviewer,Address,Review Title,,Review,Rating Date,Rating" + b"\n")
 
 # List the first page of the reviews (ends with "#tab-reviews") - separate the websites with ,
 WebSites = [
@@ -48,7 +48,7 @@ for theurl in WebSites:
                 # Loop through each review on the page
         for x in range(0, len(helpcountarray)):
             try:
-                User = soup.findAll(attrs={"class": "reviewer_country"})[x].text
+                User = soup.findAll(attrs={"class": "review_item_reviewer"})[x].text.split("|", 1)[1][-4:].replace("|", "").strip()
                 Reviewer = User[0]
             except:
                 Reviewer = "N/A"
@@ -57,22 +57,29 @@ for theurl in WebSites:
             Reviewer = Reviewer.replace(',', ' ').replace('"', '').replace('"', '').replace('"', '').strip()
             Address = soup.findAll(attrs={"class": "reviewer_country"})[x].text.replace(',', ' ').replace('\n', ' ').strip()
             ReviewTitle = soup.findAll(attrs={"class": "review_item_header_content"})[x].text.replace(',', ' ').replace('"', '').replace('"','').replace('"', '').replace('e', 'e').strip()
-            ReviewNeg = soup.findAll(attrs={"class": "review_neg"})[x].text.replace(',', ' ').replace('\n', ' ').strip()
-            ReviewPos = soup.findAll(attrs={"class": "review_pos"})[x].text.replace(',', ' ').replace('\n', ' ').strip()
             RatingDate = soup.findAll(attrs={"class": "review_item_date"})[x].text.replace('Reviewed', ' ').replace('NEW',' ').replace(',', ' ').strip()
             Rating = soup.findAll(attrs={"class": "review-score-badge"})[x].text.replace(',', ' ').replace('\n', ' ').strip()
+            Review = soup.findAll(attrs={"class": "review_neg"})[x].text.replace(',', ' ').replace('\n', ' ').strip()
 
-            Record = Organization + "," + Reviewer + "," + Address +  "," + ReviewTitle + "," + ReviewNeg + "," + ReviewPos + "," + RatingDate + "," + Rating
+            Record = Organization + "," + Reviewer + "," + Address +  "," + ReviewTitle + "," + Review + "," + RatingDate + "," + Rating
             if Checker == "REVIEWS":
                 file.write(bytes(Record, encoding="ascii", errors='ignore')  + b"\n")
 
-        link = soup.find_all('p', attrs={"class": "page_link review_next_page"})
+            Review = soup.findAll(attrs={"class": "review_pos"})[x].text.replace(',', ' ').replace('\n', ' ').strip()
+
+            Record = Organization + "," + Reviewer + "," + Address +  "," + ReviewTitle + "," + Review + "," + RatingDate + "," + Rating
+            if Checker == "REVIEWS":
+                file.write(bytes(Record, encoding="ascii", errors='ignore')  + b"\n")
+
+        link = soup.find(attrs={"id": "page_link review_next_page"}).text
         print(Organization)
-        if len(link) == 0:
-            break
-        else:
+        print(link)
+        if link.find('href'):
             soup = BeautifulSoup(urllib.request.urlopen("https://www.booking.com" + link[0].get('href')),"html.parser")
             print(link[0].get('href'))
             Checker = link[0].get('href')[-7:]
+        else:
+            break
+
 
 file.close()
