@@ -25,23 +25,23 @@ for theurl in WebSites:
     while True:
         # extract the help count, restaurant review count, attraction review count and hotel review count
         a = b = 0
-        helpcountarray = ""
+        hotelarray = ""
         WebSites1 = ""
 
-        for profile in soup.findAll(attrs={"class": "member_info"}):
-            if span.find("Did you find this review helpful?") > 0:
-                counter = span.split("Did you find this review helpful?", 1)[0].split("|", 1)[1][-4:].replace("|", "").strip()
-                if len(helpcountarray) == 0:
-                    helpcountarray = [counter]
+        for profile in soup.findAll(attrs={"class": "col-xs-3 review-info"}):
+            if span.find("Stayed") > 0:
+                counter = span.split("Stayed", 1)[0].split("|", 1)[1][-4:].replace("|", "").strip()
+                if len(hotelarray) == 0:
+                    hotelarray = [counter]
                 else:
-                    helpcountarray.append(counter)
-            elif span.find("Did you find this review helpful?") < 0:
-                if len(helpcountarray) == 0:
-                    helpcountarray = ["0"]
+                    hotelarray.append(counter)
+            elif span.find("Stayed") < 0:
+                if len(hotelarray) == 0:
+                    hotelarray = ["0"]
                 else:
-                    helpcountarray.append("0")
+                    hotelarray.append("0")
 
-        Organization = soup.find(attrs={"class": "hotel-header-name"}).text.replace('"', ' ').strip()
+        Organization = "Taal Vista"
         Address = "Tagaytay City"
 
         # Loop through each review on the page
@@ -62,17 +62,14 @@ for theurl in WebSites:
             if Checker == "REVIEWS":
                 file.write(bytes(Record, encoding="ascii", errors='ignore')  + b"\n")
 
-        link = soup.find_all(attrs={"class": "nav next taLnk "})
+        link = soup.find_all(attrs={"class": "next-arrow"})
         print(Organization)
         print(link)
-        if num == 15:
+        if len(link) == 0:
             break
         else:
-            num = num + 5
-            WebSites1 = "http://www.tripadvisor.com.ph" + "/Hotel_Review-g317121-d320846-Reviews-or" + str(num) + "-Taal_Vista_Hotel-Tagaytay_Cavite_Province_Calabarzon_Region_Luzon.html#REVIEWS"
-            page = urlopen(WebSites1)
-            soup = BeautifulSoup(page, "html.parser")
-            print(WebSites1)
-            Checker = WebSites1[-7:]
+            soup = BeautifulSoup(urllib.request.urlopen("http://www.tripadvisor.com" + link[0].get('href')),"html.parser")
+            print(link[0].get('href'))
+            Checker = link[0].get('href')[-7:]
 
 file.close()
