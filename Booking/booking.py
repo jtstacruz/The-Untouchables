@@ -11,7 +11,7 @@ from urllib.request import urlopen
 
 file = open(os.path.expanduser(r"~/Desktop/Booking Reviews.csv"), "wb")
 file.write(
-    b"Organization,Reviewer,Address,Review Title,,Review,Rating Date,Rating" + b"\n")
+    b"Organization,Reviewer,Address,Review Title,Review,Rating Date,Rating" + b"\n")
 
 # List the first page of the reviews (ends with "#tab-reviews") - separate the websites with ,
 WebSites = [
@@ -48,7 +48,7 @@ for theurl in WebSites:
                 # Loop through each review on the page
         for x in range(0, len(helpcountarray)):
             try:
-                User = soup.findAll("h4")[x].text
+                User = soup.findAll(attrs={"class": "reviewer_country"})[x].text
                 Reviewer = User[0]
             except:
                 Reviewer = "N/A"
@@ -71,13 +71,23 @@ for theurl in WebSites:
             if Checker == "REVIEWS":
                 file.write(bytes(Record, encoding="ascii", errors='ignore')  + b"\n")
 
-        link = soup.find('p', attrs={"class": "page_link review_next_page"})
+        link = soup.find_all('a', attrs={"id":"review_next_page_link"})
         print(Organization)
         print(link)
-        if link.findAll('href'):
-            soup = BeautifulSoup(urllib.request.urlopen("https://www.booking.com" + link[0].get('href')),"html.parser")
-            print(link[0].get('href'))
-            Checker = link[0].get('href')[-7:]
+        if link == []:
+            num = num + 10
+            if num%2 == 0:
+                Website1 = "https://www.booking.com" + "/reviewlist.en-gb.html?aid=304142;label=gen173nr-1FCAEoggJCAlhYSDNiBW5vcmVmaLQBiAEBmAEuwgEKd2luZG93cyAxMMgBDNgBAegBAfgBC5ICAXmoAgM;sid=57e16a7fc2b9e71d3324af8b746657c1;cc1=ph;dist=1;pagename=taal-vista;r_lang=en;type=total&;offset=" + str(num) + ";rows=10"
+                page = urlopen(WebSites1)
+                soup = BeautifulSoup(page, "html.parser")
+                print(WebSites1)
+                Checker = WebSites1[-7:]
+            else:
+                WebSites1 = "https://www.booking.com" + "/reviewlist.en-gb.html?aid=304142;label=gen173nr-1FCAEoggJCAlhYSDNiBW5vcmVmaLQBiAEBmAEuwgEKd2luZG93cyAxMMgBDNgBAegBAfgBC5ICAXmoAgM;sid=57e16a7fc2b9e71d3324af8b746657c1;cc1=ph;dist=1;pagename=taal-vista;r_lang=en;type=total;upsort_photo=0&;offset=" + str(num) + ";rows=10"
+                page = urlopen(WebSites1)
+                soup = BeautifulSoup(page, "html.parser")
+                print(WebSites1)
+                Checker = WebSites1[-7:]
         else:
             break
 
