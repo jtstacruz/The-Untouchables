@@ -41,9 +41,8 @@ for theurl in WebSites:
                 else:
                     helpcountarray.append("0")
 
-        Organization = soup.find(attrs={"class": "heading_title"}).text.replace('"', ' ').replace('Review of',
-                                                                                                 ' ').strip()
-        Address = soup.findAll(attrs={"class": "locality"})[0].text.replace(',', '').replace('\n', '').strip()
+        Organization = soup.find(attrs={"class": "hotel-header-name"}).text.replace('"', ' ').strip()
+        Address = "Tagaytay City"
 
         # Loop through each review on the page
         for x in range(0, len(hotelarray)):
@@ -57,27 +56,7 @@ for theurl in WebSites:
             ReviewTitle = soup.findAll(attrs={"class": "comment-title-text"})[x].text.replace(',', ' ').replace('"', '').replace('"','').replace('"', '').replace('e', 'e').strip()
             Review = soup.findAll(attrs={"class": "comment-text"})[x].text.replace(',', ' ').replace('\n', ' ').strip()
             RatingDate = soup.findAll(attrs={"class": "comment-text"})[x].text.replace('Reviewed', ' ').replace('NEW',' ').replace(',', ' ').strip()
-
-            altarray = []
-            for rating in soup.findAll(attrs={"class": "rating reviewItemInline"}):
-
-                if rating.find(class_ = "ui_bubble_rating bubble_50"):
-                    Rating = str(50)
-                    altarray.append(Rating)
-                elif rating.find(class_ = "ui_bubble_rating bubble_40"):
-                    Rating = str(40)
-                    altarray.append(Rating)
-                elif rating.find(class_ = "ui_bubble_rating bubble_30"):
-                    Rating = str(30)
-                    altarray.append(Rating)
-                elif rating.find(class_ = "ui_bubble_rating bubble_20"):
-                    Rating = str(20)
-                    altarray.append(Rating)
-                elif rating.find(class_ = "ui_bubble_rating bubble_10"):
-                    Rating = str(10)
-                    altarray.append(Rating)
-
-            Rating = altarray[x]
+            Rating = soup.findAll(attrs={"class": "individual-review-rate"})[x].text.replace(',', ' ').replace('\n', ' ').strip()
 
             Record = Organization + "," + Address + "," + Reviewer + "," + ReviewTitle + "," + Review + "," + RatingDate + "," + Rating
             if Checker == "REVIEWS":
