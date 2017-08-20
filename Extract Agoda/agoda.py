@@ -29,31 +29,6 @@ for theurl in WebSites:
         WebSites1 = ""
 
         for profile in soup.findAll(attrs={"class": "member_info"}):
-            image = profile.text.replace("\n", "|||||").strip()
-            if image.find("helpful vote") > 0:
-                counter = image.split("helpful vote", 1)[0].split("|", 1)[1][-4:].replace("|", "").strip()
-                if len(helpcountarray) == 0:
-                    helpcountarray = [counter]
-                else:
-                    helpcountarray.append(counter)
-            elif image.find("helpful vote") < 0:
-                if len(helpcountarray) == 0:
-                    helpcountarray = ["0"]
-                else:
-                    helpcountarray.append("0")
-
-            if image.find("attraction") > 0:
-                counter = image.split("attraction", 1)[0].split("|", 1)[1][-4:].replace("|", "").strip()
-                if len(attractionarray) == 0:
-                    attractionarray = [counter]
-                else:
-                    attractionarray.append(counter)
-            elif image.find("attraction") < 0:
-                if len(attractionarray) == 0:
-                    attractionarray = ["0"]
-                else:
-                    attractionarray.append("0")
-
             if image.find("restaurant") > 0:
                 counter = image.split("restaurant", 1)[0].split("|", 1)[1][-4:].replace("|", "").strip()
                 if len(restaurantarray) == 0:
