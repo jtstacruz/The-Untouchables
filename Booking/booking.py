@@ -11,7 +11,7 @@ from urllib.request import urlopen
 
 file = open(os.path.expanduser(r"~/Desktop/Booking Reviews.csv"), "wb")
 file.write(
-    b"Organization,Address,Reviewer,Review Title,ReviewNeg,ReviewPos,Rating Date,Rating" + b"\n")
+    b"Organization,Reviewer,Address,Review Title,Review,Rating Date,Rating" + b"\n")
 
 # List the first page of the reviews (ends with "#tab-reviews") - separate the websites with ,
 WebSites = [
@@ -26,65 +26,70 @@ for theurl in WebSites:
     while True:
         # extract the help count, restaurant review count, attraction review count and hotel review count
         a = b = 0
-        restaurantarray = hotelarray = ""
+        helpcountarray = hotelarray = ""
         WebSites1 = ""
 
-        for slide in soup.find(attrs={"class": "sliding-panel-widget-content review_list_block one_col"}):
-            for profile in soup.findAll(attrs={"class": "review_item_review"}):
-                image = profile.text.replace("\n", "|||||").strip()
-                if image.find("restaurant") > 0:
-                    counter = image.split("restaurant", 1)[0].split("|", 1)[1][-4:].replace("|", "").strip()
-                    if len(restaurantarray) == 0:
-                        restaurantarray = [counter]
-                    else:
-                        restaurantarray.append(counter)
-                elif image.find("restaurant") < 0:
-                    if len(restaurantarray) == 0:
-                        restaurantarray = ["0"]
-                    else:
-                        restaurantarray.append("0")
+        for profile in soup.findAll(attrs={"class": "review_item_review"}):
+            image = profile.text.replace("\n", "|||||").strip()
+            if image.find("helpful vote") > 0:
+                counter = image.split("helpful vote", 1)[0].split("|", 1)[1][-4:].replace("|", "").strip()
+                if len(helpcountarray) == 0:
+                    helpcountarray = [counter]
+                else:
+                    helpcountarray.append(counter)
+            elif image.find("helpful vote") < 0:
+                if len(helpcountarray) == 0:
+                    helpcountarray = ["0"]
+                else:
+                    helpcountarray.append("0")
 
-                if image.find("hotel") > 0:
-                    counter = image.split("hotel", 1)[0].split("|", 1)[1][-4:].replace("|", "").strip()
-                    if len(hotelarray) == 0:
-                        hotelarray = [counter]
-                    else:
-                        hotelarray.append(counter)
-                elif image.find("hotel") < 0:
-                    if len(hotelarray) == 0:
-                        hotelarray = ["0"]
-                    else:
-                        hotelarray.append("0")
+        Organization = "Taal Vista Hotel"
 
-            Organization = "Taal Vista Hotel"
-            Address = "Tagaytay City"
+                # Loop through each review on the page
+        for x in range(0, len(helpcountarray)):
+            try:
+                User = soup.findAll(attrs={"class": "reviewer_country"})[x].text
+                Reviewer = User[0]
+            except:
+                Reviewer = "N/A"
+                continue
 
-            # Loop through each review on the page
-            for x in range(0, len(hotelarray)):
-                try:
-                    Reviewer = soup.findAll(attrs={"class": "review_item_reviewer"})[x].text
-                except:
-                    Reviewer = "N/A"
-                    continue
+            Reviewer = Reviewer.replace(',', ' ').replace('"', '').replace('"', '').replace('"', '').strip()
+            Address = soup.findAll(attrs={"class": "reviewer_country"})[x].text.replace(',', ' ').replace('\n', ' ').strip()
+            ReviewTitle = soup.findAll(attrs={"class": "review_item_header_content"})[x].text.replace(',', ' ').replace('"', '').replace('"','').replace('"', '').replace('e', 'e').strip()
+            RatingDate = soup.findAll(attrs={"class": "review_item_date"})[x].text.replace('Reviewed', ' ').replace('NEW',' ').replace(',', ' ').strip()
+            Rating = soup.findAll(attrs={"class": "review-score-badge"})[x].text.replace(',', ' ').replace('\n', ' ').strip()
+            Review = soup.findAll(attrs={"class": "review_neg"})[x].text.replace(',', ' ').replace('\n', ' ').strip()
 
-                Reviewer = Reviewer.replace(',', ' ').replace('"', '').replace('"', '').replace('"', '').strip()
-                ReviewTitle = soup.findAll(attrs={"class": "review_item_header_content"})[x].text.replace(',', ' ').replace('"', '').replace('"','').replace('"', '').replace('e', 'e').strip()
-                ReviewNeg = soup.findAll(attrs={"class": "review_neg"})[x].text.replace(',', ' ').replace('\n', ' ').strip()
-                ReviewPos = soup.findAll(attrs={"class": "review_pos"})[x].text.replace(',', ' ').replace('\n', ' ').strip()
-                RatingDate = soup.findAll(attrs={"class": "review_item_date"})[x].text.replace('Reviewed', ' ').replace('NEW',' ').replace(',', ' ').strip()
-                Rating = soup.findAll(attrs={"class": "review-score-badge"})[x].text.replace(',', ' ').replace('\n', ' ').strip()
+            Record = Organization + "," + Reviewer + "," + Address +  "," + ReviewTitle + "," + Review + "," + RatingDate + "," + Rating
+            if Checker == "REVIEWS":
+                file.write(bytes(Record, encoding="ascii", errors='ignore')  + b"\n")
 
-                Record = Organization + "," + Address + "," + Reviewer + "," + ReviewTitle + "," + ReviewNeg + "," + ReviewPos + "," + RatingDate + "," + Rating
-                if Checker == "REVIEWS":
-                    file.write(bytes(Record, encoding="ascii", errors='ignore')  + b"\n")
+            Review = soup.findAll(attrs={"class": "review_pos"})[x].text.replace(',', ' ').replace('\n', ' ').strip()
 
-            link = soup.find_all(attrs={"class": "page_link review_next_page"})
-            print(Organization)
-            if len(link) == 0:
-                break
+            Record = Organization + "," + Reviewer + "," + Address +  "," + ReviewTitle + "," + Review + "," + RatingDate + "," + Rating
+            if Checker == "REVIEWS":
+                file.write(bytes(Record, encoding="ascii", errors='ignore')  + b"\n")
+
+        link = soup.find_all('a', attrs={"id":"review_next_page_link"})
+        print(Organization)
+        print(link)
+        if link == []:
+            num = num + 10
+            if num%2 == 0:
+                Website1 = "https://www.booking.com" + "/reviewlist.en-gb.html?aid=304142;label=gen173nr-1FCAEoggJCAlhYSDNiBW5vcmVmaLQBiAEBmAEuwgEKd2luZG93cyAxMMgBDNgBAegBAfgBC5ICAXmoAgM;sid=57e16a7fc2b9e71d3324af8b746657c1;cc1=ph;dist=1;pagename=taal-vista;r_lang=en;type=total&;offset=" + str(num) + ";rows=10"
+                page = urlopen(WebSites1)
+                soup = BeautifulSoup(page, "html.parser")
+                print(WebSites1)
+                Checker = WebSites1[-7:]
             else:
-                soup = BeautifulSoup(urllib.request.urlopen("https://www.booking.com" + link[0].get('href')),"html.parser")
-                print(link[0].get('href'))
-                Checker = link[0].get('href')[-7:]
+                WebSites1 = "https://www.booking.com" + "/reviewlist.en-gb.html?aid=304142;label=gen173nr-1FCAEoggJCAlhYSDNiBW5vcmVmaLQBiAEBmAEuwgEKd2luZG93cyAxMMgBDNgBAegBAfgBC5ICAXmoAgM;sid=57e16a7fc2b9e71d3324af8b746657c1;cc1=ph;dist=1;pagename=taal-vista;r_lang=en;type=total;upsort_photo=0&;offset=" + str(num) + ";rows=10"
+                page = urlopen(WebSites1)
+                soup = BeautifulSoup(page, "html.parser")
+                print(WebSites1)
+                Checker = WebSites1[-7:]
+        else:
+            break
+
 
 file.close()

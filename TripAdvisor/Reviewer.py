@@ -125,6 +125,7 @@ for theurl in WebSites:
 
         link = soup.find_all(attrs={"class": "nav next taLnk "})
         print(Organization)
+        print(link)
         if num == 15:
             break
         else:
