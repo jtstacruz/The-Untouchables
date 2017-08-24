@@ -1,7 +1,0 @@
-@relation Try2
-
-@attribute Review {'Stayed overnight Premier King room Taal Lake view Amazing view Tagaytay booked quite number hotels airbnb rooms honestly say view Premier room Taal Vista best'}
-@attribute Rating numeric
-
-@data
-'Stayed overnight Premier King room Taal Lake view Amazing view Tagaytay booked quite number hotels airbnb rooms honestly say view Premier room Taal Vista best',50
