@@ -1,16 +1,9 @@
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
+import string
 
-example_sentence = "This is an example of showing off stop word filtration."
 
-stop_words = set(stopwords.words("english"))
-
-words = word_tokenize(example_sentence)
-
-filtered_sentence = []
-
-for w in words:
-  if w not in stop_words:
-    filtered_sentence.append(w)
-
-print (filtered_sentence)
+with open('TripAdviser Reviews.csv','r') as inFile, open('outputFile.csv','w') as outFile:
+	for line in inFile.readlines():
+	    print(" ".join([word for word in line.lower().translate(str.maketrans('', '', string.punctuation)).split()
+        	if len(word) >=4 and word not in stopwords.words('english')]), file=outFile)
