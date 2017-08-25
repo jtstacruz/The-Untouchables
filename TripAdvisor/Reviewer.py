@@ -1,6 +1,11 @@
 # tripadvisor Scrapper - use this one to scrape hotels
 
 # importing libraries
+from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 import urllib
 import os
@@ -25,47 +30,11 @@ for theurl in WebSites:
     while True:
         # extract the help count, restaurant review count, attraction review count and hotel review count
         a = b = 0
-        helpcountarray = restaurantarray = attractionarray = hotelarray = ""
+        hotelarray = ""
         WebSites1 = ""
 
         for profile in soup.findAll(attrs={"class": "member_info"}):
             image = profile.text.replace("\n", "|||||").strip()
-            if image.find("helpful vote") > 0:
-                counter = image.split("helpful vote", 1)[0].split("|", 1)[1][-4:].replace("|", "").strip()
-                if len(helpcountarray) == 0:
-                    helpcountarray = [counter]
-                else:
-                    helpcountarray.append(counter)
-            elif image.find("helpful vote") < 0:
-                if len(helpcountarray) == 0:
-                    helpcountarray = ["0"]
-                else:
-                    helpcountarray.append("0")
-
-            if image.find("attraction") > 0:
-                counter = image.split("attraction", 1)[0].split("|", 1)[1][-4:].replace("|", "").strip()
-                if len(attractionarray) == 0:
-                    attractionarray = [counter]
-                else:
-                    attractionarray.append(counter)
-            elif image.find("attraction") < 0:
-                if len(attractionarray) == 0:
-                    attractionarray = ["0"]
-                else:
-                    attractionarray.append("0")
-
-            if image.find("restaurant") > 0:
-                counter = image.split("restaurant", 1)[0].split("|", 1)[1][-4:].replace("|", "").strip()
-                if len(restaurantarray) == 0:
-                    restaurantarray = [counter]
-                else:
-                    restaurantarray.append(counter)
-            elif image.find("restaurant") < 0:
-                if len(restaurantarray) == 0:
-                    restaurantarray = ["0"]
-                else:
-                    restaurantarray.append("0")
-
             if image.find("hotel") > 0:
                 counter = image.split("hotel", 1)[0].split("|", 1)[1][-4:].replace("|", "").strip()
                 if len(hotelarray) == 0:
