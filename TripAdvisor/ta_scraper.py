@@ -35,10 +35,9 @@ def tripadvisor():
         browser.quit()
 
     count = 0
+    html_source = browser.page_source
+    soup = BeautifulSoup(html_source, "html.parser")
     while True:
-        html_source = browser.page_source
-        soup = BeautifulSoup(html_source, "html.parser")
-
         Reviewer_element = browser.find_elements_by_xpath("//*[@class='expand_inline scrname']")
         Review_title_element = browser.find_elements_by_xpath("//*[@class='noQuotes']")
         Review_element = browser.find_elements_by_css_selector(".partial_entry:nth-child(1)")
@@ -53,17 +52,10 @@ def tripadvisor():
 
         for x in range(5):
 
-            username = Reviewer_element[x].text.replace(',', ' ').replace('"', '').replace('"', '').replace('"', '').strip()
-            Reviewer.append(username)
-
-            title = Review_title_element[x].text.replace(',', ' ').replace('"', '').replace('"', '').replace('"', '').strip()
-            Review_title.append(title)
-
-            rev = Review_element[x].text.replace(',', ' ').replace('"', '').replace('"', '').replace('"', '').replace('\n', ' ').strip()
-            Review.append(rev)
-
-            date = Rating_date_element[x].text.replace('Reviewed', ' ').replace('NEW',' ').replace(',', ' ').strip()
-            Rating_date.append(date)
+            Reviewer.append(Reviewer_element[x].text.replace(',', ' ').replace('"', '').replace('"', '').replace('"', '').strip())
+            Review_title.append(Review_title_element[x].text.replace(',', ' ').replace('"', '').replace('"', '').replace('"', '').strip())
+            Review.append(Review_element[x].text.replace(',', ' ').replace('"', '').replace('"', '').replace('"', '').replace('\n', ' ').strip())
+            Rating_date.append(Rating_date_element[x].text.replace('Reviewed', ' ').replace('NEW',' ').replace(',', ' ').strip())
 
             for i in soup.findAll(attrs={"class": "rating reviewItemInline"}):
 
@@ -87,36 +79,43 @@ def tripadvisor():
             count = count + 1
 
         count = 0
-
         link = soup.find_all(attrs={"class": "nav next taLnk "})
         if link == False:
             break
 
         else:
             try:
-                WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, '//*[@id="taplc_location_reviews_list_hotels_0"]/div[12]/div')))
+                WebDriverWait(browser, 200).until(EC.visibility_of_element_located((By.XPATH, '//*[@id="taplc_location_reviews_list_hotels_0"]/div[12]/div')))
                 NextButton = browser.find_element_by_css_selector("span.nav.next.taLnk ")
                 NextButton.click()
+                html_source = browser.page_source
+                soup = BeautifulSoup(html_source, "html.parser")
 
                 try:
-                    WebDriverWait(browser, 100).until(EC.visibility_of_element_located((By.XPATH, '//*[@id="taplc_location_reviews_list_hotels_0"]/div[12]/div')))
                     WebDriverWait(browser, 200).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "span.taLnk.ulBlueLinks")))
-                except TimeoutException:
+                except Exception:
                     print("Timed out! Waiting for page to load")
                     browser.quit()
 
-                if WebDriverWait(browser, 200).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "span.taLnk.ulBlueLinks"))):
+
+                if WebDriverWait(browser, 200).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "#taplc_location_reviews_list_hotels_0"))):
+                    WebDriverWait(browser, 200).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, "span.taLnk.ulBlueLinks")))
                     morebutton = browser.find_element_by_css_selector("span.taLnk.ulBlueLinks")
                     morebutton.click()
 
-                try:
-                    WebDriverWait(browser, 10).until(EC.invisibility_of_element_located((By.XPATH, '//*[@id="review_516865814"]/div/div[2]/div/div[1]/div[3]/div/p/span')))
-                except TimeoutException:
-                    print("Timed out! Waiting for more button to load")
-                    browser.quit()
+                    try:
+                        WebDriverWait(browser, 200).until(EC.invisibility_of_element_located((By.XPATH, '//*[@id="review_516865814"]/div/div[2]/div/div[1]/div[3]/div/p/span')))
+                        WebDriverWait(browser, 200).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, ".expand_inline.scrname")))
+                        WebDriverWait(browser, 200).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, ".noQuotes")))
+                        WebDriverWait(browser, 200).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, ".partial_entry")))
+                        WebDriverWait(browser, 200).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, ".ratingDate.relativeDate")))
+                        WebDriverWait(browser, 200).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, ".rating.reviewItemInline")))
+                    except Exception:
+                        print("Timed out! Waiting for more button to load")
+                        browser.quit()
 
-            except TimeoutException:
-                print("Timed out! Waiting for more button to load")
+            except Exception:
+                print("Timed out! Waiting for next button to load")
                 browser.quit()
 
 
