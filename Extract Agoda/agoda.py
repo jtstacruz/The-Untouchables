@@ -1,75 +1,84 @@
-# tripadvisor Scrapper - use this one to scrape hotels
-
-# importing libraries
+from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
 from bs4 import BeautifulSoup
 import urllib
 import os
 import re
 from urllib.request import urlopen
 
-# creating CSV file to be used
-
 file = open(os.path.expanduser(r"~/Desktop/Agoda Reviews.csv"), "wb")
 file.write(
-    b"Organization,Address,Reviewer,Review Title,Review,Rating Date,Rating" + b"\n")
+    b"Review,Rating Date,Rating  " + b"\n")
 
-# List the first page of the reviews (ends with "#REVIEWS") - separate the websites with ,
-WebSites = [
-    "https://www.agoda.com/taal-vista-hotel/hotel/tagaytay-ph.html"]
-Checker = "REVIEWS"
-# looping through each site until it hits a break
-num = 0
-for theurl in WebSites:
-    thepage = urlopen(theurl)
-    soup = BeautifulSoup(thepage, "html.parser")
+def agoda():
+    browser = webdriver.Chrome()
+    browser.get('https://www.agoda.com/taal-vista-hotel/hotel/tagaytay-ph.html')
+
+    try:
+        WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, '//*[@class="comment-text"]')))
+    except TimeoutException:
+        print("Timed out! Waiting for page to load")
+        browser.quit()
+
+    count = 0
+
     while True:
-        # extract the help count, restaurant review count, attraction review count and hotel review count
-        a = b = 0
-        hotelarray = ""
-        WebSites1 = ""
+        Review_element = browser.find_elements_by_xpath("//*[@data-selenium='reviews-comments']")
+        Rating_date_element = browser.find_elements_by_xpath("//*[@class='col-xs-9 comment-date']")
+        Rating_element = browser.find_elements_by_xpath("//*[@class='comment-score']")
 
-        for profile in soup.findAll(attrs={"class": "col-xs-3 review-info"}):
-            if span.find("Stayed") > 0:
-                counter = span.split("Stayed", 1)[0].split("|", 1)[1][-4:].replace("|", "").strip()
-                if len(hotelarray) == 0:
-                    hotelarray = [counter]
-                else:
-                    hotelarray.append(counter)
-            elif span.find("Stayed") < 0:
-                if len(hotelarray) == 0:
-                    hotelarray = ["0"]
-                else:
-                    hotelarray.append("0")
+        Review = []
+        Rating_date = []
+        Rating = []
 
-        Organization = "Taal Vista"
-        Address = "Tagaytay City"
+        for x in range(10):
 
-        # Loop through each review on the page
-        for x in range(0, len(hotelarray)):
-            try:
-                Reviewer = soup.findAll(attrs={"class": "reviewer-name"})[x].text
-            except:
-                Reviewer = "N/A"
-                continue
+            Review.append(Review_element[x].text.replace(',', ' ').replace('"', '').replace('"', '').replace('"', '').replace('\n', ' ').strip())
+            Rating_date.append(Rating_date_element[x].text.replace('Reviewed', ' ').replace('NEW',' ').replace(',', ' ').strip())
+            Rating.append(Rating_element)
 
-            Reviewer = Reviewer.replace(',', ' ').replace('"', '').replace('"', '').replace('"', '').strip()
-            ReviewTitle = soup.findAll(attrs={"class": "comment-title-text"})[x].text.replace(',', ' ').replace('"', '').replace('"','').replace('"', '').replace('e', 'e').strip()
-            Review = soup.findAll(attrs={"class": "comment-text"})[x].text.replace(',', ' ').replace('\n', ' ').strip()
-            RatingDate = soup.findAll(attrs={"class": "comment-text"})[x].text.replace('Reviewed', ' ').replace('NEW',' ').replace(',', ' ').strip()
-            Rating = soup.findAll(attrs={"class": "individual-review-rate"})[x].text.replace(',', ' ').replace('\n', ' ').strip()
+            print(Review[count])
 
-            Record = Organization + "," + Address + "," + Reviewer + "," + ReviewTitle + "," + Review + "," + RatingDate + "," + Rating
-            if Checker == "REVIEWS":
-                file.write(bytes(Record, encoding="ascii", errors='ignore')  + b"\n")
+            count = count + 1
 
-        link = soup.find_all(attrs={"class": "next-arrow"})
-        print(Organization)
-        print(link)
-        if len(link) == 0:
+            if count == 10:
+                break
+
+"""
+            Record = Review[count] + "," + Rating_date[count] + "," + Rating[count]
+
+            file.write(bytes(Record, encoding="ascii", errors='ignore')  + b"\n")
+
+            count = count + 1
+
+        count = 0
+        link = browser.find_elements_by_xpath("//*[@class='ficon ficon-24 ficon-carrouselarrow-right']")
+        if link == False:
             break
-        else:
-            soup = BeautifulSoup(urllib.request.urlopen("http://www.tripadvisor.com" + link[0].get('href')),"html.parser")
-            print(link[0].get('href'))
-            Checker = link[0].get('href')[-7:]
 
-file.close()
+        else:
+            try:
+                WebDriverWait(browser, 200).until(EC.visibility_of_element_located((By.XPATH, '//*[@id="next-page"]/i')))
+                NextButton = browser.find_element_by_css_selector("span.nav.next.taLnk ")
+                NextButton.click()
+
+                #try:
+                #    WebDriverWait(browser, 200).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, ".expand_inline.scrname")))
+                #    WebDriverWait(browser, 200).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, ".noQuotes")))
+                #    WebDriverWait(browser, 200).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, ".partial_entry")))
+                #    WebDriverWait(browser, 200).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, ".ratingDate.relativeDate")))
+                #except Exception:
+                #    print("Timed out! Waiting for page to load")
+                #    browser.quit()
+
+            except Exception:
+                print("Timed out! Waiting for next button to load")
+                browser.quit()
+"""
+
+if __name__ == "__main__":
+  agoda()
