@@ -35,51 +35,47 @@ def agoda():
         Rating_date = []
         Rating = []
 
-        for x in range(4):
+        for x in range(10):
 
             Review.append(Review_element[x].text.replace(',', ' ').replace('"', '').replace('"', '').replace('"', '').replace('\n', ' ').strip())
-            Rating.append(Rating_element[x].text)
+            Rating.append(Rating_element[x].text.replace('.','').strip())
             Rating_date.append(Rating_date_element[x].text.replace('Reviewed', ' ').replace('NEW',' ').replace(',', ' ').strip())
 
-
             print(Review[count] + Rating[count] + Rating_date[count])
-
-            count = count + 1
-
-            if count == 4:
+            '''
+            if count == 5:
                 break
 
-"""
             Record = Review[count] + "," + Rating_date[count] + "," + Rating[count]
 
             file.write(bytes(Record, encoding="ascii", errors='ignore')  + b"\n")
-
+            '''
             count = count + 1
 
+
         count = 0
-        link = browser.find_elements_by_xpath("//*[@class='ficon ficon-24 ficon-carrouselarrow-right']")
+        link = browser.find_elements_by_xpath("//*[@data-selenium='reviews-next-page-link']")
         if link == False:
             break
-
         else:
             try:
                 WebDriverWait(browser, 200).until(EC.visibility_of_element_located((By.XPATH, '//*[@id="next-page"]/i')))
-                NextButton = browser.find_element_by_css_selector("span.nav.next.taLnk ")
+                NextButton = browser.find_element_by_css_selector(".next-arrow")
                 NextButton.click()
 
-                #try:
-                #    WebDriverWait(browser, 200).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, ".expand_inline.scrname")))
-                #    WebDriverWait(browser, 200).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, ".noQuotes")))
-                #    WebDriverWait(browser, 200).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, ".partial_entry")))
-                #    WebDriverWait(browser, 200).until(EC.visibility_of_all_elements_located((By.CSS_SELECTOR, ".ratingDate.relativeDate")))
-                #except Exception:
-                #    print("Timed out! Waiting for page to load")
-                #    browser.quit()
+                try:
+                    WebDriverWait(browser, 200).until(EC.visibility_of_all_elements_located((By.XPATH, "//*[@data-selenium='reviews-comments']")))
+                    WebDriverWait(browser, 200).until(EC.visibility_of_all_elements_located((By.XPATH, "//*[@data-selenium='review-date']")))
+                    WebDriverWait(browser, 200).until(EC.visibility_of_all_elements_located((By.XPATH, "//*[@data-selenium='individual-review-rate']")))
+                    WebDriverWait(browser, 200).until(EC.visibility_of_all_elements_located((By.XPATH, "//*[@data-selenium='reviews-next-page-link']")))
+                except Exception:
+                    print("Timed out! Waiting for page to load")
+                    browser.quit()
 
             except Exception:
                 print("Timed out! Waiting for next button to load")
                 browser.quit()
-"""
+
 
 if __name__ == "__main__":
   agoda()
