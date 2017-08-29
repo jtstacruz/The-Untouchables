@@ -76,6 +76,11 @@ def tripadvisor():
                     Rating.append(rate)
 
             print(Reviewer[count] + " : " + Review_title[count] + " : " + Review[count] + " : " + Rating_date[count] + " : " + Rating[count])
+
+            Record = Reviewer[count] + "," + Review_title[count] + "," + Review[count] + "," + Rating_date[count] + "," + Rating[count]
+
+            file.write(bytes(Record, encoding="ascii", errors='ignore')  + b"\n")
+
             count = count + 1
 
         count = 0
