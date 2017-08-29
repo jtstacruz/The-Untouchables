@@ -19,7 +19,7 @@ def agoda():
     browser.get('https://www.agoda.com/taal-vista-hotel/hotel/tagaytay-ph.html')
 
     try:
-        WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, '//*[@class="comment-text"]')))
+        WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//*[@data-selenium='reviews-comments']")))
     except TimeoutException:
         print("Timed out! Waiting for page to load")
         browser.quit()
@@ -28,24 +28,25 @@ def agoda():
 
     while True:
         Review_element = browser.find_elements_by_xpath("//*[@data-selenium='reviews-comments']")
-        Rating_date_element = browser.find_elements_by_xpath("//*[@class='col-xs-9 comment-date']")
-        Rating_element = browser.find_elements_by_xpath("//*[@class='comment-score']")
+        Rating_date_element = browser.find_elements_by_xpath("//*[@data-selenium='review-date']")
+        Rating_element = browser.find_elements_by_xpath("//*[@data-selenium='individual-review-rate']")
 
         Review = []
         Rating_date = []
         Rating = []
 
-        for x in range(10):
+        for x in range(4):
 
             Review.append(Review_element[x].text.replace(',', ' ').replace('"', '').replace('"', '').replace('"', '').replace('\n', ' ').strip())
+            Rating.append(Rating_element[x].text)
             Rating_date.append(Rating_date_element[x].text.replace('Reviewed', ' ').replace('NEW',' ').replace(',', ' ').strip())
-            Rating.append(Rating_element)
 
-            print(Review[count])
+
+            print(Review[count] + Rating[count] + Rating_date[count])
 
             count = count + 1
 
-            if count == 10:
+            if count == 4:
                 break
 
 """
