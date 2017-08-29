@@ -4,11 +4,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains
-from bs4 import BeautifulSoup
-import urllib
+import pymysql
 import os
-import re
-from urllib.request import urlopen
+
+db = pymysql.connect("localhost", "root", "", "reviewer")
+cursor = db.cursor()
 
 file = open(os.path.expanduser(r"~/Desktop/Booking Reviews.csv"), "wb")
 file.write(
@@ -26,6 +26,7 @@ def booking():
 
     count = 0
     range_num = 11
+    booking_id = 102
     while True:
         Review_element_neg = browser.find_elements_by_xpath("//*[@class='review_neg']")
         Review_element_pos = browser.find_elements_by_xpath("//*[@class='review_pos']")
@@ -39,15 +40,21 @@ def booking():
 
         for x in range(range_num):
 
-            Review.append(Review_element_neg[x].text.replace(',', ' ').replace('"', '').replace('"', '').replace('"', '').replace('\n', ' ').strip())
+            Review.append(Review_element_neg[x].text.replace(',', ' ').replace('눉', '').replace('"', '').replace('"', '').replace('"', '').replace('\n', ' ').strip())
             Rating.append(Rating_element[x].text.replace('.','').strip())
             Rating_date.append(Rating_date_element[x].text.replace('Reviewed', ' ').replace('NEW',' ').replace(',', ' ').strip())
 
             print(Review[count] + Rating[count] + Rating_date[count])
+            cursor.execute """INSERT INTO CUSTOMER (REVIEWSITES_ID, CSTMR_REVIEW, CSTMR_RATINGDATE, CSTMR_RATING)
+                                            values(booking_id, Review[count],Rating[count],Rating_date[count])"""
+            db.commit()
 
-            Review2.append(Review_element_pos[x].text.replace(',', ' ').replace('"', '').replace('"', '').replace('"', '').replace('\n', ' ').strip())
+
+            Review2.append(Review_element_pos[x].text.replace(',', ' ').replace('눇', '').replace('"', '').replace('"', '').replace('"', '').replace('\n', ' ').strip())
 
             print(Review2[count] + Rating[count] + Rating_date[count])
+            cursor.execute('INSERT INTO CUSTOMER values(booking_id, Review[count],Rating[count],Rating_date[count])')
+            db.commit()
 
             '''
             if count == 5:
@@ -58,8 +65,10 @@ def booking():
             file.write(bytes(Record, encoding="ascii", errors='ignore')  + b"\n")
             '''
             count = count + 1
-'''
 
+
+'''
+        range_num = 10
         count = 0
         link = browser.find_elements_by_xpath("//*[@data-selenium='reviews-next-page-link']")
         if link == False:
