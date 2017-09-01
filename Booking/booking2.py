@@ -7,13 +7,16 @@ from selenium.webdriver.common.action_chains import ActionChains
 import pymysql
 import os
 
+#connect to mysql
 db = pymysql.connect("localhost", "root", "", "reviewer")
 cursor = db.cursor()
 
+#open csv file
 file = open(os.path.expanduser(r"~/Desktop/Booking Reviews.csv"), "wb")
 file.write(
     b"Review,Rating Date,Rating  " + b"\n")
 
+#extract booking and insert to database
 def booking():
     browser = webdriver.Chrome()
     browser.get('https://www.booking.com/hotel/ph/taal-vista.en-gb.html#tab-reviews')
@@ -25,6 +28,7 @@ def booking():
         browser.quit()
 
     count = 0
+    #for 11 reviews at first page
     range_num = 11
     booking_id = 102
     while True:
@@ -44,32 +48,37 @@ def booking():
             Rating.append(Rating_element[x].text.replace('.','').strip())
             Rating_date.append(Rating_date_element[x].text.replace('Reviewed', ' ').replace('NEW',' ').replace(',', ' ').strip())
 
+            #print at cmd
             print(Review[count] + Rating[count] + Rating_date[count])
-            cursor.execute """INSERT INTO CUSTOMER (REVIEWSITES_ID, CSTMR_REVIEW, CSTMR_RATINGDATE, CSTMR_RATING)
-                                            values(booking_id, Review[count],Rating[count],Rating_date[count])"""
-            db.commit()
+            #insert to database (negative reviews)
+            cursor.execute("INSERT INTO CUSTOMER  (REVIEWSITES_ID, CSTMR_REVIEW, CSTMR_RATINGDATE, CSTMR_RATING) values (%s,%s,%s,%s)",
+            (booking_id, str(Review[count]),str(Rating_date[count]),str(Rating[count])))
 
+            db.commit()
 
             Review2.append(Review_element_pos[x].text.replace(',', ' ').replace('눇', '').replace('"', '').replace('"', '').replace('"', '').replace('\n', ' ').strip())
 
             print(Review2[count] + Rating[count] + Rating_date[count])
-            cursor.execute('INSERT INTO CUSTOMER values(booking_id, Review[count],Rating[count],Rating_date[count])')
-            db.commit()
 
-            '''
+            #insert to database (positive reviews)
+            cursor.execute("INSERT INTO CUSTOMER  (REVIEWSITES_ID, CSTMR_REVIEW, CSTMR_RATINGDATE, CSTMR_RATING) values (%s,%s,%s,%s)",
+            (booking_id, str(Review2[count]),str(Rating_date[count]),str(Rating[count])))
+
+            db.commit()
+            count = count + 1
+
             if count == 5:
                 break
 
+            '''
+            #write into csv file
             Record = Review[count] + "," + Rating_date[count] + "," + Rating[count]
 
             file.write(bytes(Record, encoding="ascii", errors='ignore')  + b"\n")
             '''
-            count = count + 1
-
-
 '''
-        range_num = 10
         count = 0
+        range_num = 10
         link = browser.find_elements_by_xpath("//*[@data-selenium='reviews-next-page-link']")
         if link == False:
             break
