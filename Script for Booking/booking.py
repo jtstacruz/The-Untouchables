@@ -1,95 +1,233 @@
-# tripadvisor Scrapper - use this one to scrape hotels
-
-# importing libraries
-from bs4 import BeautifulSoup
-import urllib
+from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
+import pymysql
 import os
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+import string
 import re
-from urllib.request import urlopen
 
-# creating CSV file to be used
+#connect to mysql
+db = pymysql.connect("localhost", "root", "", "reviewer")
+cursor = db.cursor()
 
+#open csv file
 file = open(os.path.expanduser(r"~/Desktop/Booking Reviews.csv"), "wb")
 file.write(
-    b"Organization,Reviewer,Address,Review Title,Review,Rating Date,Rating" + b"\n")
+    b"Review,Rating Date,Rating  " + b"\n")
 
-# List the first page of the reviews (ends with "#tab-reviews") - separate the websites with ,
-WebSites = [
-    "https://www.booking.com/hotel/ph/taal-vista.en-gb.html#tab-reviews"]
-Checker = "REVIEWS"
 
-# looping through each site until it hits a break
-num = 0
-for theurl in WebSites:
-    thepage = urlopen(theurl)
-    soup = BeautifulSoup(thepage, "html.parser")
+#extract booking and insert to database
+def booking():
+    browser = webdriver.Chrome()
+    browser.get('https://www.booking.com/hotel/ph/taal-vista.en-gb.html#tab-reviews')
+
+    try:
+        WebDriverWait(browser, 50).until(EC.visibility_of_element_located((By.XPATH, "//*[@class='review-policy__header-group']")))
+    except TimeoutException:
+        print("Timed out! Waiting for page to load")
+        browser.quit()
+
+    count = 0
+    #for 11 reviews at first page
+    range_num = 11
+    booking_id = 102
     while True:
-        # extract the help count, restaurant review count, attraction review count and hotel review count
-        a = b = 0
-        helpcountarray = hotelarray = ""
-        WebSites1 = ""
+        #######################################
+        ###### EXTRACT DATA FROM BOOKING ######
+        #######################################
+        Review_element_neg = browser.find_elements_by_xpath("//*[@class='review_neg']")
+        Review_element_pos = browser.find_elements_by_xpath("//*[@class='review_pos']")
+        Rating_date_element = browser.find_elements_by_xpath("//*[@class='review_item_date']")
+        Rating_element = browser.find_elements_by_xpath("//*[@class='review-score-badge']")
 
-        for profile in soup.findAll(attrs={"class": "review_item_review"}):
-            image = profile.text.replace("\n", "|||||").strip()
-            if image.find("helpful vote") > 0:
-                counter = image.split("helpful vote", 1)[0].split("|", 1)[1][-4:].replace("|", "").strip()
-                if len(helpcountarray) == 0:
-                    helpcountarray = [counter]
-                else:
-                    helpcountarray.append(counter)
-            elif image.find("helpful vote") < 0:
-                if len(helpcountarray) == 0:
-                    helpcountarray = ["0"]
-                else:
-                    helpcountarray.append("0")
+        Review = []
+        Review2 = []
+        Rating_date = []
+        Rating = []
 
-        Organization = "Taal Vista Hotel"
+        for x in range(2):
+            if count == 2:
+                break
+                browser.quit()
 
-                # Loop through each review on the page
-        for x in range(0, len(helpcountarray)):
-            try:
-                User = soup.findAll(attrs={"class": "reviewer_country"})[x].text
-                Reviewer = User[0]
-            except:
-                Reviewer = "N/A"
-                continue
+            Review.append(Review_element_neg[x].text.replace(',', ' ').replace('눉', '').replace('"', '').replace('"', '').replace('"', '').replace('\n', ' ').strip())
+            Rating.append(Rating_element[x].text.replace('.','').strip())
+            Rating_date.append(Rating_date_element[x].text.replace('Reviewed', ' ').replace('NEW',' ').replace(',', ' ').strip())
 
-            Reviewer = Reviewer.replace(',', ' ').replace('"', '').replace('"', '').replace('"', '').strip()
-            Address = soup.findAll(attrs={"class": "reviewer_country"})[x].text.replace(',', ' ').replace('\n', ' ').strip()
-            ReviewTitle = soup.findAll(attrs={"class": "review_item_header_content"})[x].text.replace(',', ' ').replace('"', '').replace('"','').replace('"', '').replace('e', 'e').strip()
-            RatingDate = soup.findAll(attrs={"class": "review_item_date"})[x].text.replace('Reviewed', ' ').replace('NEW',' ').replace(',', ' ').strip()
-            Rating = soup.findAll(attrs={"class": "review-score-badge"})[x].text.replace(',', ' ').replace('\n', ' ').strip()
-            Review = soup.findAll(attrs={"class": "review_neg"})[x].text.replace(',', ' ').replace('\n', ' ').strip()
+            #print at cmd
+            print(Review[count] + " : " + Rating[count] + " : " + Rating_date[count])
 
-            Record = Organization + "," + Reviewer + "," + Address +  "," + ReviewTitle + "," + Review + "," + RatingDate + "," + Rating
-            if Checker == "REVIEWS":
-                file.write(bytes(Record, encoding="ascii", errors='ignore')  + b"\n")
+            ################################
+            ###### INSERT TO DATABASE ######
+            ################################
+            cursor.execute("INSERT INTO CUSTOMER  (REVIEWSITES_ID, CSTMR_REVIEW, CSTMR_RATINGDATE, CSTMR_RATING) values (%s,%s,%s,%s)",
+            (booking_id, str(Review[count]),str(Rating_date[count]),str(Rating[count])))
+            #commit insert
+            db.commit()
 
-            Review = soup.findAll(attrs={"class": "review_pos"})[x].text.replace(',', ' ').replace('\n', ' ').strip()
+            ###########################
+            ###### PREPROCESSING ######
+            ###########################
+            emoji_pattern = re.compile("["
+                u"\U0001F600-\U0001F64F"         # emoticons
+                u"\U0001F300-\U0001F5FF"         # symbols & pictographs
+                u"\U0001F680-\U0001F6FF"         # transport & map symbols
+                u"\U0001F1E0-\U0001F1FF"         # flags (iOS)
+                           "]+", flags=re.UNICODE)
+            rx = re.compile('\W+')
+            stop_words = set(stopwords.words("english"))
 
-            Record = Organization + "," + Reviewer + "," + Address +  "," + ReviewTitle + "," + Review + "," + RatingDate + "," + Rating
-            if Checker == "REVIEWS":
-                file.write(bytes(Record, encoding="ascii", errors='ignore')  + b"\n")
 
-        link = soup.find_all('a', attrs={"id":"review_next_page_link"})
-        print(Organization)
-        print(link)
-        if link == []:
-            num = num + 10
-            if num%2 == 0:
-                Website1 = "https://www.booking.com" + "/reviewlist.en-gb.html?aid=304142;label=gen173nr-1FCAEoggJCAlhYSDNiBW5vcmVmaLQBiAEBmAEuwgEKd2luZG93cyAxMMgBDNgBAegBAfgBC5ICAXmoAgM;sid=57e16a7fc2b9e71d3324af8b746657c1;cc1=ph;dist=1;pagename=taal-vista;r_lang=en;type=total&;offset=" + str(num) + ";rows=10"
-                page = urlopen(WebSites1)
-                soup = BeautifulSoup(page, "html.parser")
-                print(WebSites1)
-                Checker = WebSites1[-7:]
-            else:
-                WebSites1 = "https://www.booking.com" + "/reviewlist.en-gb.html?aid=304142;label=gen173nr-1FCAEoggJCAlhYSDNiBW5vcmVmaLQBiAEBmAEuwgEKd2luZG93cyAxMMgBDNgBAegBAfgBC5ICAXmoAgM;sid=57e16a7fc2b9e71d3324af8b746657c1;cc1=ph;dist=1;pagename=taal-vista;r_lang=en;type=total;upsort_photo=0&;offset=" + str(num) + ";rows=10"
-                page = urlopen(WebSites1)
-                soup = BeautifulSoup(page, "html.parser")
-                print(WebSites1)
-                Checker = WebSites1[-7:]
-        else:
+            first = emoji_pattern.sub(r'', Review[count])   #replace all emoji to blank space
+            second = re.sub(r"http\S+", "", first)          #replace URL into blank space
+            third = rx.sub(' ', second).strip()             #replace all non-alphanumerics to spaces
+            words = word_tokenize(third.lower())            #tokenize and lower case
+            filtered_sentence = []
+
+            for w in words:
+              if w not in stop_words:
+                  filtered_sentence.append(w)
+            print ("*************************************")
+            print ("**********  CLEANED DATA  ***********")
+            print ("*************************************")
+            print ("*************************************")
+            print ("".join([" "+i if not i.startswith("'") and i not in string.punctuation else i for i in filtered_sentence]).strip())
+
+            #############################################
+            ###### INSERT TO DATABASE PREPROCESSED ######
+            #############################################
+            cursor.execute("INSERT INTO  PREPROCESSED(PREPROCESSED_REVIEW) values (%s)", (str(Review[count])))
+            #commit insert
+            db.commit()
+
+            ###############################
+            ###### COUNT OCCURENECE  ######
+            ###############################
+            words_pos = ["clean", "rooms", "amazing", "worth", "great", "luxury", "kind", "yummy", "better", "comfortable"]
+            words_neg = ["old", "No", "horrible", "smelly", "failed", "disgusting", "poor", "not", "stains", "outdated", "noisy", "although" ]
+            pos = 0
+            neg = 0
+            for word in Review[count]:
+            	words.append(word)
+
+            for item in words:
+            	if item in words_pos:
+            		pos += 1
+
+            for item in words:
+            	if item in words_neg:
+            		neg += 1
+
+
+            if pos > neg:
+            	print("POSITIVE!" + " : " + str(pos))
+            elif neg > pos:
+            	print("NEGATIVE" + " : " + str(neg))
+            elif neg == pos:
+                print("NEUTRAL")
+
+            print ("*************************************")
+            print ("*************************************")
+
+            Review2.append(Review_element_pos[x].text.replace(',', ' ').replace('눇', '').replace('"', '').replace('"', '').replace('"', '').replace('\n', ' ').strip())
+
+            print(Review2[count] + " : " + Rating[count] + " : " + Rating_date[count])
+
+            #insert to database (positive reviews)
+            cursor.execute("INSERT INTO CUSTOMER  (REVIEWSITES_ID, CSTMR_REVIEW, CSTMR_RATINGDATE, CSTMR_RATING) values (%s,%s,%s,%s)",
+            (booking_id, str(Review2[count]),str(Rating_date[count]),str(Rating[count])))
+            #commit insert
+            db.commit()
+
+            #clean review
+            first = emoji_pattern.sub(r'', Review2[count])  #replace all emoji to blank space
+            second = re.sub(r"http\S+", "", first)          #replace URL into blank space
+            third = rx.sub(' ', second).strip()             #replace all non-alphanumerics to spaces
+            words = word_tokenize(third.lower())            #tokenize and lower case
+            filtered_sentence = []
+
+            for w in words:
+              if w not in stop_words:
+                  filtered_sentence.append(w)
+            print ("*************************************")
+            print ("**********  CLEANED DATA  ***********")
+            print ("*************************************")
+            print ("*************************************")
+            print ("".join([" "+i if not i.startswith("'") and i not in string.punctuation else i for i in filtered_sentence]).strip())
+
+            #############################################
+            ###### INSERT TO DATABASE PREPROCESSED ######
+            #############################################
+            cursor.execute("INSERT INTO  PREPROCESSED(PREPROCESSED_REVIEW) values (%s)",
+            (str(Review2[count])))
+            #commit insert
+            db.commit()
+
+            ###############################
+            ###### COUNT OCCURENECE  ######
+            ###############################
+            pos = 0
+            neg = 0
+            for word in Review2[count]:
+            	words.append(word)
+
+            for item in words:
+            	if item in words_pos:
+            		pos += 1
+
+            for item in words:
+            	if item in words_neg:
+            		neg += 1
+
+
+            if pos > neg:
+            	print("POSITIVE!" + " : " + str(pos))
+            elif neg > pos:
+            	print("NEGATIVE" + " : " + str(neg))
+            elif neg == pos:
+                print("NEUTRAL")
+
+            print ("*************************************")
+            print ("*************************************")
+
+            count = count + 1
+
+            '''
+            #write into csv file
+            Record = Review[count] + "," + Rating_date[count] + "," + Rating[count]
+
+            file.write(bytes(Record, encoding="ascii", errors='ignore')  + b"\n")
+            '''
+'''
+        count = 0
+        range_num = 10
+        link = browser.find_elements_by_xpath("//*[@data-selenium='reviews-next-page-link']")
+        if link == False:
             break
+        else:
+            try:
+                WebDriverWait(browser, 200).until(EC.visibility_of_element_located((By.XPATH, '//*[@id="next-page"]/i')))
+                NextButton = browser.find_element_by_css_selector(".next-arrow")
+                NextButton.click()
 
+                try:
+                    WebDriverWait(browser, 200).until(EC.visibility_of_all_elements_located((By.XPATH, "//*[@data-selenium='reviews-comments']")))
+                    WebDriverWait(browser, 200).until(EC.visibility_of_all_elements_located((By.XPATH, "//*[@data-selenium='review-date']")))
+                    WebDriverWait(browser, 200).until(EC.visibility_of_all_elements_located((By.XPATH, "//*[@data-selenium='individual-review-rate']")))
+                    WebDriverWait(browser, 200).until(EC.visibility_of_all_elements_located((By.XPATH, "//*[@data-selenium='reviews-next-page-link']")))
+                except Exception:
+                    print("Timed out! Waiting for page to load")
+                    browser.quit()
 
-file.close()
+            except Exception:
+                print("Timed out! Waiting for next button to load")
+                browser.quit()
+'''
+
+if __name__ == "__main__":
+  booking()
